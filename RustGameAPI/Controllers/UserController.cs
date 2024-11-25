@@ -48,9 +48,10 @@ public class UserController : ControllerBase
     [HttpGet("LookForUser")]
     public async Task<IActionResult> LookForUser(string username)
     {
-        UserController userController = this;
-        RustGameAPI.Models.User user = await userController._context.Users.FirstOrDefaultAsync<RustGameAPI.Models.User>((Expression<Func<RustGameAPI.Models.User, bool>>)(u => u.Username == username));
-        return user == null ? (IActionResult)userController.NotFound() : (IActionResult)userController.Ok((object)user);
+        var user = await _context.Users
+            .Where(x => x.Username == username)
+            .ToListAsync();
+        return user == null ? NotFound() : Ok(user);
     }
 
     [HttpPost("{Username}/{Password}")]
@@ -67,5 +68,19 @@ public class UserController : ControllerBase
         IActionResult actionResult = (IActionResult)userController.Ok((object)user);
         user = (RustGameAPI.Models.User)null;
         return actionResult;
+    }
+
+    [HttpGet("GetIDfromUsername/{Username}")]
+    public async Task<IActionResult> GetIDfromUsername(string Username)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == Username);
+        return user == null ? NotFound() : Ok(user.UserID);
+    }
+
+    [HttpGet ("GetScoresDescending")]
+    public async Task<IActionResult> GetScoresDescending()
+    {
+        var users = _context.Users.OrderByDescending(u => u.HighScore).ToList();
+        return Ok(users);
     }
 }

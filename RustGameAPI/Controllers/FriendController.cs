@@ -51,4 +51,19 @@ public class FriendController : ControllerBase
         var friends = _context.Friends.Where(f => f.UserID == userId).ToList();
         return Ok(friends);
     }
+
+    [HttpGet("GetAllFriends/{userId}")]
+    public async Task<IActionResult> GetAllFriends(int userId)
+    {
+        var friends = _context.Friends
+            .Where(f => f.UserID == userId)
+            .Include(f => f.User)
+            .Include(f => f.FriendUser)
+            .Select(f => f.UserID == userId
+                ? f.FriendUser.Username // If the current user is the "User", return FriendUser's username
+                : f.User.Username)      // Otherwise, return the User's username
+            .Distinct() // Remove duplicates in case of reciprocal friendships
+            .ToList();
+        return Ok(friends);
+    }
 }
