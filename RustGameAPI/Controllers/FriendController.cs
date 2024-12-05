@@ -42,7 +42,46 @@ public class FriendController : ControllerBase
 
         _context.Friends.AddRange(friend, reciprocalFriend);
         await _context.SaveChangesAsync();
+
         return Ok(new { friend, reciprocalFriend });
+    }
+
+    [HttpPost("SendFriendRequest")]
+    public async Task<IActionResult> SendFriendRequest(int userId, string friendUsername)
+    {
+        var friend = await _context.Users.FirstOrDefaultAsync(u => u.Username == friendUsername);
+
+        if (friend == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        var exists = await _context.Friends
+            .AnyAsync(f =>
+                           (f.UserID == userId && f.FriendUserID == friend.UserID) ||
+                                          (f.UserID == friend.UserID && f.FriendUserID == userId));
+
+        if (exists)
+        {
+            return BadRequest("Friendship already exists.");
+        }
+
+        var friendRequest = new Friend
+        {
+            UserID = userId,
+            FriendUserID = friend.UserID
+        };
+
+        var reciprocalFriendRequest = new Friend
+        {
+            UserID = friend.UserID,
+            FriendUserID = userId
+        };
+
+        _context.Friends.AddRange(friendRequest, reciprocalFriendRequest);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { friendRequest, reciprocalFriendRequest } );
     }
 
     [HttpGet("{userId}")]

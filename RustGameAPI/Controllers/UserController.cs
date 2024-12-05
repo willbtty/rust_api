@@ -22,12 +22,19 @@ public class UserController : ControllerBase
     public UserController(AppDbContext context) => this._context = context;
 
     [HttpPost("AddUser")]
-    public async Task<IActionResult> AddUser(RustGameAPI.Models.User user)
+    public async Task<IActionResult> AddUser(string username, string password)
     {
-        UserController userController = this;
-        userController._context.Users.Add(user);
-        int num = await userController._context.SaveChangesAsync();
-        return (IActionResult)userController.Ok((object)user);
+        var user = new RustGameAPI.Models.User
+        {
+            Username = username,
+            Password = password
+        };
+
+        _context.Users.Add(user);
+
+        await _context.SaveChangesAsync();
+        var users = await _context.Users.ToListAsync();
+        return Ok(users);
     }
 
     [HttpGet("{id}")]
@@ -48,26 +55,10 @@ public class UserController : ControllerBase
     [HttpGet("LookForUser")]
     public async Task<IActionResult> LookForUser(string username)
     {
-        var user = await _context.Users
-            .Where(x => x.Username == username)
-            .ToListAsync();
+        var user = _context.Users
+        .Where(x => x.Username == username)
+        .ToList();
         return user == null ? NotFound() : Ok(user);
-    }
-
-    [HttpPost("{Username}/{Password}")]
-    public async Task<IActionResult> AddUser(string Username, string Password)
-    {
-        UserController userController = this;
-        RustGameAPI.Models.User user = new RustGameAPI.Models.User()
-        {
-            Username = Username,
-            Password = Password
-        };
-        userController._context.Users.Add(user);
-        int num = await userController._context.SaveChangesAsync();
-        IActionResult actionResult = (IActionResult)userController.Ok((object)user);
-        user = (RustGameAPI.Models.User)null;
-        return actionResult;
     }
 
     [HttpGet("GetIDfromUsername/{Username}")]
@@ -80,7 +71,63 @@ public class UserController : ControllerBase
     [HttpGet ("GetScoresDescending")]
     public async Task<IActionResult> GetScoresDescending()
     {
-        var users = _context.Users.OrderByDescending(u => u.HighScore).ToList();
-        return Ok(users);
+        var users_scores = _context.Users
+            .Where(x => x.HighScore > 0)
+            .OrderByDescending(x => x.HighScore)
+            .Select(x => new
+            {
+                x.UserID,
+                x.Username,
+                x.Password,
+                x.HighScore
+            })
+            .ToList();
+        return Ok(users_scores);
+    }
+
+    [HttpPut("UpdateHighScore")]
+    public async Task<IActionResult> UpdateHighScore(int UserID, int HighScore)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.UserID == UserID);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        user.HighScore = HighScore;
+        await _context.SaveChangesAsync();
+        return Ok(user);
+    }
+
+    [HttpGet("GetHighScore/{UserID}")]
+    public async Task<IActionResult> GetHighScore(int UserID)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.UserID == UserID);
+        return user == null ? NotFound() : Ok(user.HighScore);
+    }
+
+    [HttpPut("ChangeUsername")]
+    public async Task<IActionResult> ChangeUsername(int UserID, string NewUsername)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.UserID == UserID);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        user.Username = NewUsername;
+        await _context.SaveChangesAsync();
+        return Ok(user);
+    }
+
+    [HttpPut("ChangePassword")]
+    public async Task<IActionResult> ChangePassword(int UserID, string NewPassword)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.UserID == UserID);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        user.Password = NewPassword;
+        await _context.SaveChangesAsync();
+        return Ok(user);
     }
 }

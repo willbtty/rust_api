@@ -31,6 +31,31 @@
         }
       }
     },
+    "/api/Friend/SendFriendRequest": {
+      "post": {
+        "tags": [
+          "Friend"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userId",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "query",
+            "name": "friendUsername",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/api/Friend/{userId}": {
       "get": {
         "tags": [
@@ -78,18 +103,16 @@
         "tags": [
           "User"
         ],
-        "consumes": [
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
         "parameters": [
           {
-            "in": "body",
-            "name": "body",
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
+            "in": "query",
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "password",
+            "type": "string"
           }
         ],
         "responses": {
@@ -151,32 +174,6 @@
         }
       }
     },
-    "/api/User/{Username}/{Password}": {
-      "post": {
-        "tags": [
-          "User"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "Username",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "in": "path",
-            "name": "Password",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
     "/api/User/GetIDfromUsername/{Username}": {
       "get": {
         "tags": [
@@ -201,6 +198,103 @@
       "get": {
         "tags": [
           "User"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/User/UpdateHighScore": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "UserID",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "query",
+            "name": "HighScore",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/User/GetHighScore/{UserID}": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "UserID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/User/ChangeUsername": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "UserID",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "query",
+            "name": "NewUsername",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/User/ChangePassword": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "UserID",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "query",
+            "name": "NewPassword",
+            "type": "string"
+          }
         ],
         "responses": {
           "200": {
@@ -286,25 +380,6 @@
           "type": "integer"
         },
         "FriendUserID": {
-          "format": "int32",
-          "type": "integer"
-        }
-      }
-    },
-    "User": {
-      "type": "object",
-      "properties": {
-        "UserID": {
-          "format": "int32",
-          "type": "integer"
-        },
-        "Username": {
-          "type": "string"
-        },
-        "Password": {
-          "type": "string"
-        },
-        "HighScore": {
           "format": "int32",
           "type": "integer"
         }
